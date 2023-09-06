@@ -1,0 +1,58 @@
+//Task 2
+//Number Recognition: Handwritten digit recognition system not only detects scanned images of handwritten digits.Handwritten digit recognition using MNIST dataset is a major project made with the help of Neural Network. It basically detects the scanned images of handwritten digits.
+//C++ code
+#include <iostream>
+#include <tensorflow/core/public/session.h>
+#include <tensorflow/cc/ops/standard_ops.h>
+#include <tensorflow/cc/framework/gradients.h>
+#include <tensorflow/cc/ops/image_ops.h>
+#include <tensorflow/cc/client/client_session.h>
+#include <tensorflow/cc/saved_model/loader.h>
+#include <tensorflow/core/platform/env.h>
+#include <tensorflow/core/util/memmapped_file_system.h>
+
+using namespace tensorflow;
+using namespace tensorflow::ops;
+
+int main() {
+    // Load the trained model
+    Scope root = Scope::NewRootScope();
+    SavedModelBundle bundle;
+    Status status = LoadSavedModel(root, {kSavedModelTagServe}, "path_to_saved_model", &bundle);
+
+    if (!status.ok()) {
+        std::cerr << "Error loading model: " << status.ToString() << std::endl;
+        return 1;
+    }
+
+    // Create a session for inference
+    ClientSession session(bundle.session);
+
+    // Load and preprocess an image (28x28 grayscale)
+    // Replace this with your image loading and preprocessing code
+    // You might need to convert the image to the appropriate format and size
+    std::vector<float> input_data(28 * 28);
+    // Fill input_data with pixel values
+
+    // Create a Tensor from the input data
+    Tensor input_tensor(DT_FLOAT, TensorShape({1, 28, 28, 1}));
+    input_tensor.flat<float>().data() = input_data.data();
+
+    // Run the inference
+    std::vector<Tensor> outputs;
+    Status inference_status = session.Run({{bundle.feed_var, input_tensor}}, {bundle.fetch_var}, {}, &outputs);
+
+    if (!inference_status.ok()) {
+        std::cerr << "Error running inference: " << inference_status.ToString() << std::endl;
+        return 1;
+    }
+
+    // Process the output tensor to get the predicted label
+    auto output_data = outputs[0].flat<float>();
+    int predicted_label = std::distance(output_data.data(), std::max_element(output_data.data(), output_data.data() + 10));
+
+    // Display the predicted label
+    std::cout << "Predicted label: " << predicted_label << std::endl;
+
+    return 0;
+}

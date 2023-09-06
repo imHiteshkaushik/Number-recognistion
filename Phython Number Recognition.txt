@@ -1,0 +1,55 @@
+#Task 2
+#Number Recognition: Handwritten digit recognition system not only detects scanned images of handwritten digits.Handwritten digit recognition using MNIST dataset is a major project made with the help of Neural Network. It basically detects the scanned images of handwritten digits.
+#Python code
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.utils import to_categorical
+
+# Load and preprocess the MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train = x_train.reshape((60000, 28 * 28)).astype('float32') / 255
+x_test = x_test.reshape((10000, 28 * 28)).astype('float32') / 255
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+# Build the neural network model
+model = Sequential()
+model.add(Dense(512, activation='relu', input_shape=(28 * 28,)))
+model.add(Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(x_train, y_train, epochs=5, batch_size=128, validation_split=0.2)
+
+# Evaluate the model on the test set
+test_loss, test_accuracy = model.evaluate(x_test, y_test)
+print(f"Test loss: {test_loss:.4f}")
+print(f"Test accuracy: {test_accuracy:.4f}")
+
+# Plot training and validation accuracy over epochs
+plt.figure(figsize=(10, 6))
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.legend()
+plt.show()
+
+# Choose a random test image and predict its label
+random_idx = np.random.randint(0, x_test.shape[0])
+test_image = x_test[random_idx]
+test_label = np.argmax(y_test[random_idx])
+
+predicted_label = model.predict_classes(np.expand_dims(test_image, axis=0))[0]
+
+plt.imshow(test_image.reshape(28, 28), cmap='gray')
+plt.title(f"True Label: {test_label}\nPredicted Label: {predicted_label}")
+plt.axis('off')
+plt.show()
+
